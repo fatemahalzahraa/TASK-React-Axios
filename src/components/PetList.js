@@ -1,19 +1,39 @@
 import React, { useState, useSyncExternalStore } from "react";
-import petsData from "../petsData";
 import PetItem from "./PetItem";
 import Modal from "./Modal";
+import axios, { Axios } from "axios";
+import { addPet, getAllPets, getOnePet } from "../api/pets";
+import { useQuery } from "@tanstack/react-query";
 
 const PetList = () => {
   const [query, setQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
+  // const [pets, setPet] = useState([]);
 
-  const petList = petsData
-    .filter((pet) => pet.name.toLowerCase().includes(query.toLowerCase()))
+  const { data } = useQuery({
+    queryKey: ["pets"],
+    queryFn: getAllPets,
+  });
+
+  const petList = data
+    ?.filter((pet) => pet.name.toLowerCase().includes(query.toLowerCase()))
     .map((pet) => <PetItem pet={pet} key={pet.id} />);
+
+  // const petList = pets
+  //   .filter((pet) => pet.name.toLowerCase().includes(query.toLowerCase()))
+  //   .map((pet) => <PetItem pet={pet} key={pet.id} />);
+  //this was changed to data.filter
+
+  // const fetchPets = async () => {
+  //   const response = await getAllPets();
+  //   setPet(response);
+  // };
+
   return (
     <>
       <div className="bg-[#F9E3BE] flex flex-col justify-center items-center ">
         <div className="w-[76vw] flex h-[30px] mb-[30px] mt-[30px]">
+          {/* <button onClick={fetchPets}>fetch pets</button> */}
           <input
             onChange={(e) => {
               setQuery(e.target.value);
