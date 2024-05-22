@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Input from "./Input";
 import { addPet } from "../api/pets";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const Modal = ({ show, setShowModal }) => {
   const [name, setName] = useState("");
@@ -8,11 +9,23 @@ const Modal = ({ show, setShowModal }) => {
   const [image, setImage] = useState("");
   const [available, setAvailable] = useState(0);
 
-  const addingPet = async () => {
-    // console.log(name, "", type, image, available);
-    const res = await addPet(name, type, image, available);
-    console.log(res);
-  };
+  const queryClient = useQueryClient();
+
+  const { mutate } = useMutation({
+    mutationKey: ["create pet"],
+    mutationFn: () => addPet(name, type, image, available),
+    onSuccess: () => {
+      setShowModal(false);
+      queryClient.invalidateQueries(["pets"]);
+    },
+  });
+
+  // const addingPet = async () => {
+  //   // console.log(name, "", type, image, available);
+  //   const res = await addPet(name, type, image, available);
+  //   console.log(res);
+  // };
+  //we don't need this because we used useMutation instead (since we're using POST method!!)
 
   if (!show) return "";
   return (
@@ -56,7 +69,7 @@ const Modal = ({ show, setShowModal }) => {
         />
 
         <button
-          onClick={addingPet}
+          onClick={mutate}
           className="w-[70px] border border-black rounded-md ml-auto mr-5 hover:bg-green-400"
         >
           Submit

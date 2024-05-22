@@ -1,9 +1,9 @@
 import React from "react";
 import petsData from "../petsData";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { deletePet, getOnePet } from "../api/pets";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 const PetDetail = () => {
   const { petId } = useParams();
 
@@ -17,10 +17,22 @@ const PetDetail = () => {
   //in this remove function notice that we commented the setPet because we commented the useState
   //so we don't need it
 
-  const remove = async () => {
-    await deletePet(petId);
-    // setPet(removal);
-  };
+  // const remove = async () => {
+  //   await deletePet(petId);
+  //   // setPet(removal);
+  // };
+
+  // const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const { mutate } = useMutation({
+    mutationKey: ["deletePet"],
+    mutationFn: () => deletePet(petId),
+    onSuccess: () => {
+      // queryClient.invalidateQueries(["pets"]);
+      navigate("/pets");
+    },
+  });
 
   //what we did here is that when we enter the pet it'll have an empty card, however when we click on
   // one pet button we will get it's details!
@@ -35,14 +47,14 @@ const PetDetail = () => {
   //   return <Navigate to="/" />;
   // }
 
-  const pet = useQuery({
-    queryKey: ["details"],
+  const { data: pet, isLoading } = useQuery({
+    queryKey: ["details", petId],
     queryFn: () => getOnePet(petId),
-  }).data;
+  });
 
-  //we used .data because we want to refer to the data of pets + we didn't use the curly brackets
+  //we used data: pet because we want to refer to the data of pets + we didn't use the curly brackets
   //because () => function(value) basically means return that function's value w/o the need to write return!!
-
+  if (isLoading) return <h1>Loading...</h1>;
   return (
     <div className="bg-[#F9E3BE] w-screen h-[100vh] flex justify-center items-center">
       <div className="border border-black rounded-md w-[70%] h-[70%] overflow-hidden flex flex-col md:flex-row p-5">
@@ -64,7 +76,7 @@ const PetDetail = () => {
           </button>
 
           <button
-            onClick={remove}
+            onClick={mutate}
             className="w-[70px] border border-black rounded-md  hover:bg-red-400"
           >
             Delete
